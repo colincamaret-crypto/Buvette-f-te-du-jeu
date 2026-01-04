@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buvette de Colin - Commande de Boissons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .button {
+            background-color: #ff8c00;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .drink-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .drink-item {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            width: 150px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .drink-item img {
+            width: 100%;
+            border-radius: 5px;
+        }
+        .counter-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .counter-button {
+            background-color: #ff8c00;
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .counter {
+            margin: 0 10px;
+            font-size: 18px;
+        }
+        .confirmation-message {
+            display: none;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+        .horaires-container {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        .horaires-title {
+            color: #ff8c00;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .horaires-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Buvette de Colin</h1>
+
+    <div id="home-screen">
+        <button class="button" id="boisson-btn">Boisson</button>
+        <button class="button" id="autre-btn">Autre</button>
+    </div>
+
+    <div id="drinks-screen" style="display: none;">
+        <h2>Sélectionnez vos boissons</h2>
+        <div class="drink-container" id="drinks-list">
+            <!-- Les boissons seront ajoutées ici par JavaScript -->
+        </div>
+        <button class="button" id="back-to-home-from-drinks">Retour</button>
+    </div>
+
+    <div id="horaires-screen" style="display: none;">
+        <button class="button back-button" id="back-to-home-from-horaires">Retour</button>
+        <div class="horaires-container">
+            <h2 class="horaires-title">Horaires</h2>
+            <div class="horaires-content">
+                <p><strong>Lundi, Mardi, Jeudi, Vendredi :</strong> 18h - 19h</p>
+                <p><strong>Mercredi :</strong> 15h - 19h</p>
+                <p><strong>Samedi :</strong> 10h - 19h</p>
+                <p><strong>Dimanche :</strong> 10h - 18h</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmation-screen" style="display: none;">
+        <div class="confirmation-message">
+            <p>Ok, Merci pour votre commande, vous l'aurez dans 10 minutes à la buvette.</p>
+            <button class="button" id="ok-btn">OK</button>
+            <button class="button" id="continue-btn">Continuer à commander</button>
+        </div>
+    </div>
+
+    <script>
+        // Liste des boissons avec leurs images
+        const drinks = [
+            { name: "Ice Tea", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Glass_of_Ice_Tea.jpg/320px-Glass_of_Ice_Tea.jpg" },
+            { name: "Eau", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Water_bottle.jpg/320px-Water_bottle.jpg" },
+            { name: "Chocolat Chaud", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Chocolat_chaud.jpg/320px-Chocolat_chaud.jpg" },
+            { name: "Multifruit", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Fruit_juice.jpg/320px-Fruit_juice.jpg" },
+            { name: "Lait", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Glass_of_milk.jpg/320px-Glass_of_milk.jpg" },
+            { name: "Jus d'Orange", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Orange_juice_glass.jpg/320px-Orange_juice_glass.jpg" },
+            { name: "Jus de Pomme", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Apple_juice.jpg/320px-Apple_juice.jpg" },
+            { name: "Schweppes", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Schweppes_bottle.jpg/320px-Schweppes_bottle.jpg" },
+            { name: "Coca Cola", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Coca-Cola_bottle.jpg/320px-Coca-Cola_bottle.jpg" }
+        ];
+
+        // Afficher les boissons
+        const drinksListElement = document.getElementById('drinks-list');
+        drinks.forEach(drink => {
+            const drinkElement = document.createElement('div');
+            drinkElement.className = 'drink-item';
+            drinkElement.innerHTML = `
+                <img src="${drink.image}" alt="${drink.name}">
+                <p>${drink.name}</p>
+                <div class="counter-container">
+                    <button class="counter-button" onclick="decreaseCounter(this)">-</button>
+                    <span class="counter">0</span>
+                    <button class="counter-button" onclick="increaseCounter(this)">+</button>
+                </div>
+                <button class="button" onclick="validateDrink(this)">Valider</button>
+            `;
+            drinksListElement.appendChild(drinkElement);
+        });
+
+        // Bouton Boisson
+        document.getElementById('boisson-btn').addEventListener('click', () => {
+            document.getElementById('home-screen').style.display = 'none';
+            document.getElementById('drinks-screen').style.display = 'block';
+            document.getElementById('horaires-screen').style.display = 'none';
+        });
+
+        // Bouton Autre (horaires)
+        document.getElementById('autre-btn').addEventListener('click', () => {
+            document.getElementById('home-screen').style.display = 'none';
+            document.getElementById('horaires-screen').style.display = 'block';
+        });
+
+        // Bouton Retour (depuis les boissons)
+        document.getElementById('back-to-home-from-drinks').addEventListener('click', () => {
+            document.getElementById('drinks-screen').style.display = 'none';
+            document.getElementById('home-screen').style.display = 'block';
+        });
+
+        // Bouton Retour (depuis les horaires)
+        document.getElementById('back-to-home-from-horaires').addEventListener('click', () => {
+            document.getElementById('horaires-screen').style.display = 'none';
+            document.getElementById('home-screen').style.display = 'block';
+        });
+
+        // Bouton OK
+        document.getElementById('ok-btn').addEventListener('click', () => {
+            document.getElementById('confirmation-screen').style.display = 'none';
+            document.getElementById('home-screen').style.display = 'block';
+        });
+
+        // Bouton Continuer à commander
+        document.getElementById('continue-btn').addEventListener('click', () => {
+            document.getElementById('confirmation-screen').style.display = 'none';
+            document.getElementById('drinks-screen').style.display = 'block';
+        });
+
+        // Fonction pour augmenter le compteur
+        function increaseCounter(button) {
+            const counterElement = button.parentElement.querySelector('.counter');
+            let count = parseInt(counterElement.textContent);
+            if (count < 3) {
+                counterElement.textContent = count + 1;
+            }
+        }
+
+        // Fonction pour diminuer le compteur
+        function decreaseCounter(button) {
+            const counterElement = button.parentElement.querySelector('.counter');
+            let count = parseInt(counterElement.textContent);
+            if (count > 0) {
+                counterElement.textContent = count - 1;
+            }
+        }
+
+        // Fonction pour valider une boisson
+        function validateDrink(button) {
+            const drinkName = button.parentElement.querySelector('p').textContent;
+            const quantity = button.parentElement.querySelector('.counter').textContent;
+
+            if (quantity > 0) {
+                document.getElementById('drinks-screen').style.display = 'none';
+                document.getElementById('confirmation-screen').style.display = 'block';
+            } else {
+                alert("Veuillez sélectionner au moins une quantité.");
+            }
+        }
+    </script>
+</body>
+</html>
